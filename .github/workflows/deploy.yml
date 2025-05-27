@@ -1,11 +1,9 @@
-
-
 name: Build and Deploy to AKS
 
 on:
   push:
     branches:
-      - main
+      - master
 
 env:
   ACR_NAME: ireachaksacr
@@ -42,10 +40,12 @@ jobs:
       - name: Build with Maven
         run: mvn clean package -DskipTests
 
-      - name: Login to Azure CLI
+      - name: Login to Azure CLI using OIDC
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          client-id: 49362974-4ee2-4f88-b5cf-5d90b8d7e5e9  # Your Azure AD App (Service Principal) client id
+          tenant-id: 99c759c0-ce79-4f6e-839d-1895a7e65c69                    # Your Azure tenant id
+          subscription-id: 76f766cd-6240-4268-8e8c-800713bfa372  # Your subscription id
 
       - name: Docker login to ACR
         run: echo ${{ secrets.AZURE_ACR_PASSWORD }} | docker login ${{ env.ACR_NAME }}.azurecr.io -u ${{ secrets.AZURE_ACR_USERNAME }} --password-stdin
@@ -70,15 +70,6 @@ jobs:
         run: |
           kubectl get namespace ${{ env.NAMESPACE }} || kubectl create namespace ${{ env.NAMESPACE }}
 
-      - name: Update Kubernetes deployment image
+      - name: Deploy to AKS
         run: |
-          IMAGE_TAG=${{ env.ACR_NAME }}.azurecr.io/spring-azure-app:${{ github.sha }}
-          kubectl set image deployment/${{ env.DEPLOYMENT_NAME }} spring-azure-app=$IMAGE_TAG -n ${{ env.NAMESPACE }}
-
-      - name: Apply Kubernetes service and ingress manifests
-        run: |
-          kubectl apply -f k8s/service.yaml -n ${{ env.NAMESPACE }}
-          kubectl apply -f k8s/ingress.yaml -n ${{ env.NAMESPACE }}
-
-      - name: Wait for deployment rollout to finish
-        run: kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} -n ${{ env.NAMESPACE }}
+          kubectl set image deployment/${{ env.DEPLOYMENT_NAME }} springboot-app=${{ env.ACR_NAME }}.azurecr.io/spring-azure-app:${{ github.sha }} -n ${{ env.NAMESPACE }}
