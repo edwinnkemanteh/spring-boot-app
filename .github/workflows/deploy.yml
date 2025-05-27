@@ -52,7 +52,7 @@ jobs:
           subscription-id: 76f766cd-6240-4268-8e8c-800713bfa372  # Your subscription id
 
       - name: Docker login to ACR
-        run: echo ${{ secrets.AZURE_ACR_PASSWORD }} | docker login ${{ env.ACR_NAME }}.azurecr.io -u ${{ secrets.AZURE_ACR_USERNAME }} --password-stdin
+        run:  az acr login --name ireachaksacr
 
       - name: Build and push Docker image
         run: |
