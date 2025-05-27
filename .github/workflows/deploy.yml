@@ -1,0 +1,84 @@
+
+
+name: Build and Deploy to AKS
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  ACR_NAME: ireachaksacr
+  RESOURCE_GROUP: ireach-aks-resource-group
+  AKS_CLUSTER: ireach-aks-cluster
+  DEPLOYMENT_NAME: myspringbootapp
+  NAMESPACE: springboot-app
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Ensures full history is available for Gitleaks
+
+      - name: Run Gitleaks to detect secrets
+        id: gitleaks
+        uses: DariuszPorowski/github-action-gitleaks@v2
+        with:
+          fail: false  # Set to true if you want the workflow to fail on secret detection
+          report_format: json  # Options: json, csv, sarif
+          redact: true  # Redacts secrets from logs
+          verbose: true  # Enables verbose logging
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Build with Maven
+        run: mvn clean package -DskipTests
+
+      - name: Login to Azure CLI
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Docker login to ACR
+        run: echo ${{ secrets.AZURE_ACR_PASSWORD }} | docker login ${{ env.ACR_NAME }}.azurecr.io -u ${{ secrets.AZURE_ACR_USERNAME }} --password-stdin
+
+      - name: Build and push Docker image
+        run: |
+          IMAGE_TAG=${{ env.ACR_NAME }}.azurecr.io/spring-azure-app:${{ github.sha }}
+          docker build -t $IMAGE_TAG .
+          docker push $IMAGE_TAG
+
+      - name: Scan Docker image with Trivy for vulnerabilities
+        uses: aquasecurity/trivy-action@v0.30.0
+        with:
+          image-ref: ${{ env.ACR_NAME }}.azurecr.io/spring-azure-app:${{ github.sha }}
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+
+      - name: Get AKS credentials
+        run: az aks get-credentials --resource-group ${{ env.RESOURCE_GROUP }} --name ${{ env.AKS_CLUSTER }}
+
+      - name: Create namespace if not exists
+        run: |
+          kubectl get namespace ${{ env.NAMESPACE }} || kubectl create namespace ${{ env.NAMESPACE }}
+
+      - name: Update Kubernetes deployment image
+        run: |
+          IMAGE_TAG=${{ env.ACR_NAME }}.azurecr.io/spring-azure-app:${{ github.sha }}
+          kubectl set image deployment/${{ env.DEPLOYMENT_NAME }} spring-azure-app=$IMAGE_TAG -n ${{ env.NAMESPACE }}
+
+      - name: Apply Kubernetes service and ingress manifests
+        run: |
+          kubectl apply -f k8s/service.yaml -n ${{ env.NAMESPACE }}
+          kubectl apply -f k8s/ingress.yaml -n ${{ env.NAMESPACE }}
+
+      - name: Wait for deployment rollout to finish
+        run: kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} -n ${{ env.NAMESPACE }}

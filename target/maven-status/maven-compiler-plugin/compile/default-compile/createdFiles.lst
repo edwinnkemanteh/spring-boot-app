@@ -1,0 +1,4 @@
+com/ireachagility/userapp/DemoApplication.class
+com/ireachagility/userapp/model/User.class
+com/ireachagility/userapp/repository/UserRepository.class
+com/ireachagility/userapp/controller/UserController.class
