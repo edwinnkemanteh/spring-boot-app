@@ -5,6 +5,10 @@ on:
     branches:
       - master
 
+permissions:
+  id-token: write
+  contents: read
+
 env:
   ACR_NAME: ireachaksacr
   RESOURCE_GROUP: ireach-aks-resource-group
