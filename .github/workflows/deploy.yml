@@ -79,9 +79,10 @@ jobs:
         run: |
           curl -LO https://github.com/Azure/kubelogin/releases/latest/download/kubelogin-linux-amd64.zip
           unzip kubelogin-linux-amd64.zip
-          chmod +x kubelogin
-          sudo mv kubelogin /usr/local/bin/
-          
+          chmod +x bin/linux_amd64/kubelogin
+          sudo mv bin/linux_amd64/kubelogin /usr/local/bin/kubelogin
+
+
       - name: Get AKS credentials
         run: az aks get-credentials --resource-group ${{ env.RESOURCE_GROUP }} --name ${{ env.AKS_CLUSTER }}
 
