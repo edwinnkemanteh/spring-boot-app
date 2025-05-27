@@ -74,7 +74,14 @@ jobs:
       - name: Scan Docker image with Trivy for vulnerabilities
         run: |
           trivy image --severity CRITICAL,HIGH --ignore-unfixed ${{ env.ACR_NAME }}.azurecr.io/spring-azure-app:${{ github.sha }}
-
+      
+      - name: Install kubelogin
+        run: |
+          curl -LO https://github.com/Azure/kubelogin/releases/latest/download/kubelogin-linux-amd64.zip
+          unzip kubelogin-linux-amd64.zip
+          chmod +x kubelogin
+          sudo mv kubelogin /usr/local/bin/
+          
       - name: Get AKS credentials
         run: az aks get-credentials --resource-group ${{ env.RESOURCE_GROUP }} --name ${{ env.AKS_CLUSTER }}
 
