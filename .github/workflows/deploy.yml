@@ -94,9 +94,10 @@ jobs:
         run: |
           kubectl get namespace ${{ env.NAMESPACE }} || kubectl create namespace ${{ env.NAMESPACE }}
 
-      - name: Apply Kubernetes manifests
+      - name: Apply all Kubernetes manifests
         run: |
-         kubectl apply -f spring-boot-app/k8s/deployment.yaml -n ${{ env.NAMESPACE }}
+         kubectl apply -f spring-boot-app/k8s/ -n ${{ env.NAMESPACE }}
+
 
 
       - name: Deploy to AKS
