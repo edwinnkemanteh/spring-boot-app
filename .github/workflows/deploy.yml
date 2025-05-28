@@ -47,9 +47,9 @@ jobs:
       - name: Login to Azure CLI using OIDC
         uses: azure/login@v1
         with:
-          client-id: 49362974-4ee2-4f88-b5cf-5d90b8d7e5e9
-          tenant-id: 99c759c0-ce79-4f6e-839d-1895a7e65c69
-          subscription-id: 76f766cd-6240-4268-8e8c-800713bfa372
+          client-id: 49362974-4ee2-4f88-b5cf-5d90b8d7e5e9  # Your Azure AD App (Service Principal) client id
+          tenant-id: 99c759c0-ce79-4f6e-839d-1895a7e65c69  # Your Azure tenant id
+          subscription-id: 76f766cd-6240-4268-8e8c-800713bfa372  # Your subscription id
 
       - name: Docker login to ACR
         run: az acr login --name ${{ env.ACR_NAME }}
@@ -74,17 +74,25 @@ jobs:
       - name: Scan Docker image with Trivy for vulnerabilities
         run: |
           trivy image --severity CRITICAL,HIGH --ignore-unfixed ${{ env.ACR_NAME }}.azurecr.io/spring-azure-app:${{ github.sha }}
-      
-      - name: Install kubelogin
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Set up kubelogin
+        uses: azure/use-kubelogin@v1
+        with:
+          kubelogin-version: 'v0.0.24'  # Specify the desired version
+
+      - name: Set AKS context
+        uses: azure/aks-set-context@v3
+        with:
+          resource-group: ${{ env.RESOURCE_GROUP }}
+          cluster-name: ${{ env.AKS_CLUSTER }}
+          use-kubelogin: true
+
+      - name: Create namespace if not exists
         run: |
-          curl -LO https://github.com/Azure/kubelogin/releases/latest/download/kubelogin-linux-amd64.zip
-          unzip kubelogin-linux-amd64.zip
-          chmod +x bin/linux_amd64/kubelogin
-          sudo mv bin/linux_amd64/kubelogin /usr/local/bin/kubelogin
-
-
-      - name: Get AKS credentials
-        run: az aks get-credentials --resource-group ${{ env.RESOURCE_GROUP }} --name ${{ env.AKS_CLUSTER }}
+          kubectl get namespace ${{ env.NAMESPACE }} || kubectl create namespace ${{ env.NAMESPACE }}
 
       - name: Deploy to AKS
         run: |
