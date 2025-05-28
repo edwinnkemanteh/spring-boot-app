@@ -1,7 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: spring-azure-app
+  name: myspringbootapp
+  namespace: springboot-app
 spec:
   replicas: 2
   selector:
@@ -12,9 +13,10 @@ spec:
       labels:
         app: spring-azure-app
     spec:
-      serviceAccountName: springboot-service-account   # <--- Add this line
+      serviceAccountName: springboot-service-account
       containers:
       - name: spring-azure-app
         image: ireachaksacr.azurecr.io/spring-azure-app:latest
         ports:
         - containerPort: 8080
+
