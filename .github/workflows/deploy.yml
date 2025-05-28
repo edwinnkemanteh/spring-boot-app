@@ -94,6 +94,11 @@ jobs:
         run: |
           kubectl get namespace ${{ env.NAMESPACE }} || kubectl create namespace ${{ env.NAMESPACE }}
 
+      - name: Apply Kubernetes manifests
+        run: |
+         kubectl apply -f deployment.yaml -n ${{ env.NAMESPACE }}
+
+
       - name: Deploy to AKS
         run: |
          kubectl set image deployment/${{ env.DEPLOYMENT_NAME }} spring-azure-app=${{ env.ACR_NAME }}.azurecr.io/spring-azure-app:${{ github.sha }} -n ${{ env.NAMESPACE }}
