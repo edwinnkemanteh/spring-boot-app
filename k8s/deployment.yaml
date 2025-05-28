@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: myspringbootapp
+  name: spring-azure-app
   namespace: springboot-app
 spec:
   replicas: 2
