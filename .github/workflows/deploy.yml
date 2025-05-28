@@ -13,7 +13,7 @@ env:
   ACR_NAME: ireachaksacr
   RESOURCE_GROUP: ireach-aks-resource-group
   AKS_CLUSTER: ireach-aks-cluster
-  DEPLOYMENT_NAME: myspringbootapp
+  DEPLOYMENT_NAME: spring-azure-app
   NAMESPACE: springboot-app
 
 jobs:
@@ -96,6 +96,7 @@ jobs:
 
       - name: Deploy to AKS
         run: |
-         kubectl set image deployment/${{ env.DEPLOYMENT_NAME }} ${{ env.CONTAINER_NAME }}=ireachaksacr.azurecr.io/spring-azure-app:${{ github.sha }} -n ${{ env.NAMESPACE }}
+         kubectl set image deployment/${{ env.DEPLOYMENT_NAME }} spring-azure-app=${{ env.ACR_NAME }}.azurecr.io/spring-azure-app:${{ github.sha }} -n ${{ env.NAMESPACE }}
          kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} -n ${{ env.NAMESPACE }}
+
 
