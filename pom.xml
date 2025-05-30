@@ -1,3 +1,5 @@
+
+
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
@@ -65,10 +67,24 @@
 
     <build>
         <plugins>
-            <!-- Spring Boot Maven Plugin -->
+            <!-- ✅ Spring Boot Maven Plugin with repackaging -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring-boot.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <!-- Optional: Define your main class explicitly if needed -->
+                <!--
+                <configuration>
+                    <mainClass>com.ireachagility.userapp.YourMainApplicationClass</mainClass>
+                </configuration>
+                -->
             </plugin>
 
             <!-- Jacoco for code coverage -->
