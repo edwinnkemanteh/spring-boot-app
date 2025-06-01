@@ -4,9 +4,9 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: spring-azure-ingress
-  annotations:
-    kubernetes.io/ingress.class: nginx
+  # annotations can be added here if needed
 spec:
+  ingressClassName: nginx   # <-- Move this here (not under annotations)
   rules:
   - host: app.ireachdevops.net  # Replace with your actual domain
     http:
@@ -18,3 +18,4 @@ spec:
             name: spring-azure-service
             port:
               number: 80
+
