@@ -51,6 +51,16 @@ spec:
           env:
             - name: JAVA_OPTS
               value: "-Xms256m -Xmx384m"
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: spring-db-secret
+                  key: PG-ADMIN-USER
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: spring-db-secret
+                  key: PG-ADMIN-PASSWORD
           command: ["/bin/sh", "-c"]
           args:
             - java $JAVA_OPTS -jar /app/app.jar
@@ -66,3 +76,10 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 20
             failureThreshold: 3
+      volumes:
+        - name: secrets-store-inline
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: "springboot-db-kv"
