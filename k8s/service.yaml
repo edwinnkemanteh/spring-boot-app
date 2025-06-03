@@ -4,10 +4,12 @@ apiVersion: v1
 kind: Service
 metadata:
   name: spring-azure-service
+  namespace: springboot-app
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   selector:
-    app: spring-azure-app
+    app: spring-azure-app       # matches deployment pod label exactly
   ports:
   - port: 80
     targetPort: 8080
+

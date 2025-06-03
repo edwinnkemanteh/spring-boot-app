@@ -1,5 +1,3 @@
-
-
 package com.ireachagility.userapp.controller;
 
 import com.ireachagility.userapp.model.User;
@@ -10,19 +8,26 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/users")
 public class UserController {
 
     @Autowired
     private UserRepository userRepository;
 
-    @GetMapping
+    // Root path to confirm the app is running
+    @GetMapping("/")
+    public String home() {
+        return "Spring Boot App is running!";
+    }
+
+    // User endpoints under /users
+    @GetMapping("/users")
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
-    @PostMapping
+    @PostMapping("/users")
     public User createUser(@RequestBody User user) {
         return userRepository.save(user);
     }
 }
+
