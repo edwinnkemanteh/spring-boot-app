@@ -2,14 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: spring-azure-app
-  namespace: springboot-app
 spec:
   replicas: 2
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 1
   selector:
     matchLabels:
       app: spring-azure-app
@@ -18,72 +12,28 @@ spec:
       labels:
         app: spring-azure-app
     spec:
-      serviceAccountName: springboot-service-account
-      initContainers:
-        - name: wait-for-db
-          image: busybox
-          command:
-            - sh
-            - -c
-            - |
-              echo "Waiting for PostgreSQL to be ready..."
-              until nc -zvw5 ireach-springbootpg23801.postgres.database.azure.com 5432; do
-                echo "Database not ready yet. Sleeping..."
-                sleep 5
-              done
-              echo "Database is ready!"
       containers:
-        - name: spring-azure-app
-          image: ireachaksacr.azurecr.io/spring-azure-app:latest
-          ports:
-            - containerPort: 8080
-          securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
-            allowPrivilegeEscalation: false
-          resources:
-            requests:
-              cpu: 100m
-              memory: 256Mi
-            limits:
-              cpu: 500m
-              memory: 512Mi
-          env:
-            - name: JAVA_OPTS
-              value: "-Xms256m -Xmx384m"
-            - name: SPRING_DATASOURCE_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: spring-db-secret
-                  key: PG-ADMIN-USER
-            - name: SPRING_DATASOURCE_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: spring-db-secret
-                  key: PG-ADMIN-PASSWORD
-          command: ["/bin/sh", "-c"]
-          args:
-            - java $JAVA_OPTS -jar /app/app.jar
-          readinessProbe:
-            tcpSocket:
-              port: 8080
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            failureThreshold: 3
-          livenessProbe:
-            tcpSocket:
-              port: 8080
-            initialDelaySeconds: 30
-            periodSeconds: 20
-            failureThreshold: 3
-          volumeMounts:
-            - name: secrets-store-inline
-              mountPath: "/mnt/secrets-store"
-              readOnly: true
-      volumes:
-        - name: secrets-store-inline
-          csi:
-            driver: secrets-store.csi.k8s.io
-            readOnly: true
-            volumeAttributes:
-              secretProviderClass: "springboot-db-kv"
+      - name: spring-azure-app
+        image: ireachaksacr.azurecr.io/spring-azure-app:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: springboot-db-secret
+              key: DB_USERNAME
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: springboot-db-secret
+              key: DB_PASSWORD
+        - name: SPRING_DATASOURCE_URL
+          value: jdbc:postgresql://ireach-springbootpg23801.postgres.database.azure.com:5432/springbootdb
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
