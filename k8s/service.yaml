@@ -5,11 +5,15 @@ kind: Service
 metadata:
   name: spring-azure-service
   namespace: springboot-app
+  labels:
+    app: spring-azure-app      # Add label so Prometheus ServiceMonitor can target this service
 spec:
   type: LoadBalancer
   selector:
-    app: spring-azure-app       # matches deployment pod label exactly
+    app: spring-azure-app       # Matches pod labels
   ports:
-  - port: 80
+  - name: http                 # Named port (important for Prometheus to scrape)
+    port: 80
     targetPort: 8080
+
 

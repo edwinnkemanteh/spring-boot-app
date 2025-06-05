@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: spring-azure-servicemonitor
+  namespace: springboot-app
+  labels:
+    release: prometheus-operator   # Adjust if you use a different label to match Prometheus installation
+spec:
+  selector:
+    matchLabels:
+      app: spring-azure-app       # Must match the labels on your Service
+  namespaceSelector:
+    matchNames:
+      - springboot-app
+  endpoints:
+  - port: http                   # Port name in your Service, or specify port number 8080
+    interval: 15s                # Scrape interval
+    path: /actuator/prometheus   # Metrics path
