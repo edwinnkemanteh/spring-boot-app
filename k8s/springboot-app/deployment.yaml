@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: spring-azure-app
+  namespace: springboot-app
 spec:
   replicas: 2
   selector:
@@ -13,27 +14,28 @@ spec:
         app: spring-azure-app
     spec:
       containers:
-      - name: spring-azure-app
-        image: ireachaksacr.azurecr.io/spring-azure-app:latest
-        ports:
-        - containerPort: 8080
-        env:
-        - name: SPRING_DATASOURCE_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: springboot-db-secret
-              key: DB_USERNAME
-        - name: SPRING_DATASOURCE_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: springboot-db-secret
-              key: DB_PASSWORD
-        - name: SPRING_DATASOURCE_URL
-          value: jdbc:postgresql://ireach-springbootpg23801.postgres.database.azure.com:5432/springbootdb
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "250m"
-          limits:
-            memory: "512Mi"
-            cpu: "500m"
+        - name: spring-azure-app
+          image: ireachaksacr.azurecr.io/spring-azure-app:latest
+          ports:
+            - containerPort: 8080
+              name: http  # ✅ Add this to match PodMonitor
+          env:
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: springboot-db-secret
+                  key: DB_USERNAME
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: springboot-db-secret
+                  key: DB_PASSWORD
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://ireach-springbootpg23801.postgres.database.azure.com:5432/springbootdb
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
